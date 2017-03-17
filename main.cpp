@@ -34,58 +34,60 @@ int main() {
     // Start the chronograph to time the execution of the algorithm
     auto start = chrono::high_resolution_clock::now();
 
-    // loop to check whether the topology is a ring, star, or fully-connected mesh
-    bool condition[] = {true,true,true}; // ring, star, fully-connected mesh are all true until proven otherwise
-    unsigned center = 0;
-    for (unsigned i=0; i < n; i++) {
-        // my implementation
-        unsigned edgeCounter = 0;
-        for (unsigned j = 0; j < n; j++) {
-            if (j == i && W[i][j] != 0) { // validates diagonal
-                condition[0] = condition[1] = condition[2] = false;
-                goto topologyReport;
-            } else if (W[i][j] != W[j][i]) { // validate equality across diagonal
-                condition[0] = condition[1] = condition[2] = false;
-                goto topologyReport;
-            } else if (W[i][j] > 0 && W[i][j] < 100) {
-                edgeCounter++;
+    // check whether the topology is a ring, star, or fully-connected mesh
+    bool condition[] = {true,true,true};    // 3
+    unsigned center = 0, starVertex = 0;    // 2
+    for (unsigned i=0; i < n; i++) {        // ((n-1 - 0)/1 - 1) == n, n*(1 + 8n + 7 + 7) = 8n^2 + 15n
+        unsigned edgeCounter = 0;           // 1
+        for (unsigned j = 0; j < n; j++) {  // ((n-1 - 0)/1 - 1) == n, n * max(7,8,8) = 8n
+            if (j == i && W[i][j] != 0) {   // 3 -> (3) + (3 + 1) = 7
+                condition[0] = condition[1] = condition[2] = false; // 3
+                goto topologyReport; // 1
+            } else if (W[i][j] != W[j][i]) {// 1 -> (3 + 1) + (3 + 1) = 8
+                condition[0] = condition[1] = condition[2] = false; // 3
+                goto topologyReport; // 1
+            } else if (W[i][j] > 0 && W[i][j] < 100) { // 3 -> (3 + 1 + 3) + 1 = 8
+                edgeCounter++; // 1
             }
         }
-
-        // runs after each row has been processed
-        if (edgeCounter == (n-1)) {
-            condition[0] = false; // not a ring
-            center++;
-        } else {
-            condition[2] = false; // not a fully-connected mesh
-            if (edgeCounter != 2) {
-                condition[0] = false; // not a ring
+        if (edgeCounter == (n-1)) { // 2 -> 2 + (1 + 1) = 4   --> max(4,7) = 7
+            condition[0] = false; // 1
+            center++; // 1
+        } else { // 2 + (1 + 2 + 2) = 7
+            condition[2] = false; // 1
+            if (edgeCounter != 2) { // 1 -> 1 + 1 = 2
+                condition[0] = false; // 1
+            }
+            if (edgeCounter == 1) { // 1 -> 1 + 1 = 2
+                starVertex++; // 1
             }
         }
-
-        // runs only at the very end of our outer for loop to validate topology conditions
-        if (i == (n-1)) {
-            if (center != 1) {
-                condition[1] = false;
-                if (center != n) {
-                    condition[2] = false;
+        // runs only at the very end of our outer for loop to validate topology conditions{
+        if (i == (n-1)) { // 2 + max(4,5) = 2 + 5 = 7
+            if (center != 1) { // 1 -> 1 + (1 + 2) = 4
+                condition[1] = false; // 1
+                if (center != n) { // 1 -> 1 + 1 = 2
+                    condition[2] = false; // 1
+                }
+            } else { // 2 + 3 = 5
+                if (starVertex != (n-1)) { // 2 -> 2 + 1 = 3
+                    condition[1] = false; // 1
                 }
             }
         }
     }
-    topologyReport:
-
-    cout <<"The topology is"<< endl;
-    if (condition[0]) {
-        cout <<"ring" << endl;
-    } else if (condition[1]) {
-        cout <<"star" << endl;
-    } else if (condition[2]) {
-        cout <<"fully-connected mesh" << endl;
-    } else {
-        cout <<"neither" << endl;
+    topologyReport: // 1
+    cout <<"The topology is"<< endl; // 1
+    if (condition[0]) { // 1 -> 1 + 1 = 2 -> max(2,3,4,4) = 4
+        cout <<"ring" << endl; // 1
+    } else if (condition[1]) { // 1 -> (1 + 1) + 1 = 3
+        cout <<"star" << endl; // 1
+    } else if (condition[2]) { // 1 -> (1 + 1 + 1) + 1 = 4
+        cout <<"complete" << endl; // 1
+    } else { // 0 -> (1 + 1 + 1 + 0) + 1 = 4
+        cout <<"neither" << endl; // 1
     }
-
+    // Total Count: 3 + 2 + 8n^2 + 15n + 1 + 1 + 4 = 8n^2 + 15n + 11
     // End the chronograph to time the loop
     auto end = chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end-start;
